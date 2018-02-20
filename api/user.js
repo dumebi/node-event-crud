@@ -210,13 +210,14 @@ router.post('/sign-up', (r, s, n) => {
                 newUser
                     .save().then(user => {
                     return s.status(200).json({ status: 'success', data: user });
-                     });
+                });
 
             }
         }).catch(err => {
-            console.log(err);
+        console.log(err);
         return s.status(500).json({ status: 'failed', err: err });
     });
+
 });
 
 /**
@@ -312,11 +313,14 @@ router.post('/login', (r, s, n) => {
     if (r.body.email == null || r.body.password == null)
         return s.status(500).json({ status: "failed", err: "Some details were not supplied" });
     let newUser = new User;
-    User.findOne({ email: r.body.email, password:newUser.encrypt(r.body.password) })
+    User.findOne({ email: r.body.email })
         .then(user => {
-            if (user != null) { return s.status(200).json({ status: 'success', data: user }); }
+            if (!user) {return s.status(500).json({ status: 'failed', data: "User not found here" });}
             else {
-                return s.status(500).json({ status: 'failed', data: "User not found" });
+                if (!user.validatePassword(r.body.password)) {
+                    return s.status(500).json({ status: 'failed', data: "Wrong password" });
+                }
+                return s.status(200).json({ status: 'success', data: user });
             }
         }).catch(err => {
         return s.status(500).json({ status: 'failed', err: "User not found" });
